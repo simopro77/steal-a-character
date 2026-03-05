@@ -1,68 +1,88 @@
-import random
+# Complete Game Code
 
+## Character Rarities
 class Character:
-    def __init__(self, name, strength, agility):
+    def __init__(self, name, rarity):
         self.name = name
-        self.strength = strength
-        self.agility = agility
+        self.rarity = rarity
 
-    def __str__(self):
-        return f"{self.name} [Strength: {self.strength}, Agility: {self.agility}]"
+    def __repr__(self):
+        return f'{self.name} ({self.rarity})'
+
+# Rarity definitions
+RARITIES = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary']
+
+## Gacha Mechanics
+import random
 
 class Gacha:
     def __init__(self):
-        self.characters = [
-            Character("Warrior", 10, 5),
-            Character("Mage", 5, 10),
-            Character("Rogue", 7, 8),
-            Character("Paladin", 8, 6),
-        ]
+        self.pool = []
+        self.populate_pool()
+
+    def populate_pool(self):
+        for rarity in RARITIES:
+            for i in range(5):  # 5 characters per rarity
+                self.pool.append(Character(f'{rarity} Hero {i+1}', rarity))
 
     def draw(self):
-        return random.choice(self.characters)
+        return random.choice(self.pool)
 
-class Base:
+## Base System
+class Game:
     def __init__(self):
-        self.defense = 10
-        self.resources = 100
+        self.characters = []
 
-    def steal(self, strength):
-        if strength > self.defense:
-            self.resources -= 20
+    def summon(self, num=1):
+        gacha = Gacha()
+        for _ in range(num):
+            character = gacha.draw()
+            self.characters.append(character)
+
+    def show_characters(self):
+        for character in self.characters:
+            print(character)
+
+## Economy System
+class Economy:
+    def __init__(self):
+        self.coins = 1000  # starting coins
+
+    def earn_coins(self, amount):
+        self.coins += amount
+
+    def spend_coins(self, amount):
+        if amount <= self.coins:
+            self.coins -= amount
             return True
         return False
 
-class Game:
-    def __init__(self):
-        self.gacha = Gacha()
-        self.character = None
-        self.base = Base()
+## Events
+class Event:
+    def __init__(self, name):
+        self.name = name
 
-    def menu(self):
-        while True:
-            print("\n1. Draw a Character")
-            print("2. Steal from Base")
-            print("3. Exit")
-            choice = input("Choose an option: ")
-            
-            if choice == '1':
-                self.character = self.gacha.draw()
-                print(f"You drew: {self.character}")
-            elif choice == '2':
-                if self.character:
-                    success = self.base.steal(self.character.strength)
-                    if success:
-                        print("Steal successful!")
-                    else:
-                        print("Steal failed! Base defense is too high.")
-                else:
-                    print("You need to draw a character first!")
-            elif choice == '3':
-                print("Exiting game.")
-                break
-            else:
-                print("Invalid choice. Try again.")
+    def trigger_event(self):
+        print(f'Event triggered: {self.name}')
 
-if __name__ == "__main__":
+## Stealing Mechanics
+class StealingMechanic:
+    def __init__(self, players):
+        self.players = players
+
+    def steal_character(self, thief, victim):
+        if victim.characters:
+            stolen_character = random.choice(victim.characters)
+            thief.characters.append(stolen_character)
+            victim.characters.remove(stolen_character)
+            print(f'{thief} stole {stolen_character} from {victim}')
+
+# Example usage
+if __name__ == '__main__':
     game = Game()
-    game.menu()
+    game.summon(3)
+    game.show_characters()
+    economy = Economy()
+    economy.spend_coins(100)
+    event = Event('Lucky Draw')
+    event.trigger_event()
